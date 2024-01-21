@@ -79,7 +79,7 @@ end
 local function built(event)
     ---@type LuaEntity
     local entity = event.created_entity or event.entity or event.destination
-    if not entity then
+    if not entity or not entity.unit_number then
         return
     end
     update_entity(entity)
@@ -88,7 +88,7 @@ end
 
 local function removed(event)
     local entity = event.entity
-    if not entity then
+    if not entity or not entity.unit_number then
         return
     end
     delete_sprites(entity)
