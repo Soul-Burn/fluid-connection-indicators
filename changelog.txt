@@ -4,6 +4,7 @@ Date: ????
   Changes:
     - Better indicators. Any connected reduces level. Both way flow shows default in more cases.
     - Both way flow now doesn't show indicator when it would overlap with another indicator
+    - Temporarily deny fluid turrets because of a bug in the game causing a crash
   Bug fixes:
     - Apply indicators on existing saves
 ---------------------------------------------------------------------------------------------------

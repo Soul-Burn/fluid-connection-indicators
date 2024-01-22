@@ -12,4 +12,5 @@ When a fluid is connected in another pipe, the indication level goes down.
 
 # Known issues
 
-Indicators do not update when a recipe is changed. Rotating the entity or rebuilding it would update the indicators.
+* Indicators do not update when a recipe is changed. Rotating the entity or rebuilding it would update the indicators.
+* Flamethrower turrets do not have indicators

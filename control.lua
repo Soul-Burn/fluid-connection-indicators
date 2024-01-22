@@ -21,7 +21,7 @@ local function draw_indicator(entity, conn, tint)
     }
 end
 
-local denied_types = util.list_to_map { "pipe", "pipe-to-ground" }
+local denied_types = util.list_to_map { "pipe", "pipe-to-ground", "fluid-turret" }
 
 local tints = {
     error = { 1.0, 0.0, 0.0 },
