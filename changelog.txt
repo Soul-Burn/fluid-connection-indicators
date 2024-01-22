@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.2
-Date: ????
+Date: 2024-01-22
   Changes:
     - Better indicators. Any connected reduces level. Both way flow shows default in more cases.
     - Both way flow now doesn't show indicator when it would overlap with another indicator
