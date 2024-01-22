@@ -23,6 +23,48 @@ end
 
 local denied_types = util.list_to_map { "pipe", "pipe-to-ground" }
 
+local tints = {
+    error = { 1.0, 0.0, 0.0 },
+    warning = { 1.0, 1.0, 0.0 },
+    good = { 0.0, 1.0, 0.0 },
+    ignored = { 0.5, 0.5, 0.5 },
+}
+
+local function calculate_any_connected(pipe_connection, ignored_entity)
+    for _, conn in pairs(pipe_connection) do
+        if conn.target and conn.target.owner ~= ignored_entity then
+            return true
+        end
+    end
+    return false
+end
+
+local function calculate_tint(entity, conn, ignored_entity, any_connected, filter)
+    if conn.target and conn.target.owner ~= ignored_entity then
+        if filter then
+            local target_filter = conn.target.get_filter(conn.target_fluidbox_index)
+            if target_filter and target_filter.name ~= filter.name then
+                return tints.error
+            end
+        end
+        return tints.good
+    end
+
+    local indication_level = any_connected and 1 or 2
+    local neighbor = entity.surface.find_entities_filtered { position = conn.target_position, limit = 1 }[1]
+    if neighbor and neighbor ~= ignored_entity then
+        indication_level = indication_level + 1 + (#neighbor.fluidbox > 0 and 1 or 0)
+    end
+    local ignored = conn.flow_direction ~= "input-output" and tints.ignored or nil
+    local levels = {
+        ignored,
+        any_connected and ignored or nil,
+        tints.warning,
+        tints.error,
+    }
+    return levels[indication_level]
+end
+
 local function update_entity(entity, ignored_entity)
     if denied_types[entity.type] or #entity.fluidbox == 0 then
         return
@@ -32,30 +74,10 @@ local function update_entity(entity, ignored_entity)
     local indicators = {}
     global.indicators[entity.unit_number] = indicators
     for i = 1, #fb do
-        local any_connected = false
+        local any_connected = calculate_any_connected(fb.get_pipe_connections(i), ignored_entity)
+        local filter = fb.get_filter(i)
         for _, conn in pairs(fb.get_pipe_connections(i)) do
-            if conn.target and conn.target.owner ~= ignored_entity then
-                any_connected = true
-                break
-            end
-        end
-        for _, conn in pairs(fb.get_pipe_connections(i)) do
-            local tint
-            if conn.target and conn.target.owner ~= ignored_entity then
-                tint = { 0.0, 1.0, 0.0 }
-            else
-                local neighbor = entity.surface.find_entities_filtered { position = conn.target_position, limit = 1 }[1]
-                if neighbor and neighbor ~= ignored_entity then
-                    if #neighbor.fluidbox > 0 then
-                        tint = { 1.0, 0.0, 0.0 }
-                    else
-                        tint = { 1.0, 1.0, 0.0 }
-                    end
-                end
-            end
-            if not tint and any_connected then
-                tint = { 0.5, 0.5, 0.5 }
-            end
+            local tint = calculate_tint(entity, conn, ignored_entity, any_connected, filter)
             if tint then
                 table.insert(indicators, draw_indicator(entity, conn, tint))
             end

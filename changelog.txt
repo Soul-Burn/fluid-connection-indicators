@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.2
 Date: ????
+  Changes:
+    - Better indicators. Any connected reduces level. Both way flow shows default in more cases.
   Bug fixes:
     - Apply indicators on existing saves
 ---------------------------------------------------------------------------------------------------
