@@ -37,6 +37,8 @@ local function calculate_any_connected(pipe_connection, ignored_entity)
     return false
 end
 
+
+local denied_types = util.list_to_map { "pipe", "pipe-to-ground", "fluid-turret" }
 local ignored_neighbors = util.list_to_map { "straight-rail", "curved-rail", "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" }
 
 local function pump_to_rail(entity, neighbor)
@@ -45,7 +47,7 @@ end
 
 local function calculate_tint(entity, conn, ignored_entity, any_connected, filter)
     if conn.target and conn.target.owner ~= ignored_entity then
-        if conn.flow_direction == "input-output" then
+        if conn.flow_direction == "input-output" and not denied_types[conn.target.owner.type] then
             local target_flow_direction = conn.target.get_pipe_connections(conn.target_fluidbox_index)[conn.target_pipe_connection_index].flow_direction
             if target_flow_direction ~= "input-output" or conn.target.owner.unit_number > entity.unit_number then
                 return nil
@@ -75,8 +77,6 @@ local function calculate_tint(entity, conn, ignored_entity, any_connected, filte
     }
     return levels[indication_level]
 end
-
-local denied_types = util.list_to_map { "pipe", "pipe-to-ground", "fluid-turret" }
 
 local function update_entity(entity, ignored_entity)
     if denied_types[entity.type] or #entity.fluidbox == 0 then

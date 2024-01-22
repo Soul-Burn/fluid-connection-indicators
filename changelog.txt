@@ -3,6 +3,7 @@ Version: 0.1.3
 Date: ????
   Changes:
     - Ignore connection from pump to rail
+    - Ignoring pipes when deciding if a two-way flow should render or not
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.2
 Date: 2024-01-22
