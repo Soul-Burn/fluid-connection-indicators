@@ -21,8 +21,6 @@ local function draw_indicator(entity, conn, tint)
     }
 end
 
-local denied_types = util.list_to_map { "pipe", "pipe-to-ground", "fluid-turret" }
-
 local tints = {
     error = { 1.0, 0.0, 0.0 },
     warning = { 1.0, 1.0, 0.0 },
@@ -37,6 +35,12 @@ local function calculate_any_connected(pipe_connection, ignored_entity)
         end
     end
     return false
+end
+
+local ignored_neighbors = util.list_to_map { "straight-rail", "curved-rail", "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" }
+
+local function pump_to_rail(entity, neighbor)
+    return entity.type == "pump" and ignored_neighbors[neighbor.type]
 end
 
 local function calculate_tint(entity, conn, ignored_entity, any_connected, filter)
@@ -59,7 +63,7 @@ local function calculate_tint(entity, conn, ignored_entity, any_connected, filte
 
     local indication_level = any_connected and 1 or 2
     local neighbor = entity.surface.find_entities_filtered { position = conn.target_position, limit = 1 }[1]
-    if neighbor and neighbor ~= ignored_entity then
+    if neighbor and neighbor ~= ignored_entity and not pump_to_rail(entity, neighbor) then
         indication_level = indication_level + 1 + (#neighbor.fluidbox > 0 and 1 or 0)
     end
     local ignored = conn.flow_direction ~= "input-output" and tints.ignored or nil
@@ -71,6 +75,8 @@ local function calculate_tint(entity, conn, ignored_entity, any_connected, filte
     }
     return levels[indication_level]
 end
+
+local denied_types = util.list_to_map { "pipe", "pipe-to-ground", "fluid-turret" }
 
 local function update_entity(entity, ignored_entity)
     if denied_types[entity.type] or #entity.fluidbox == 0 then
