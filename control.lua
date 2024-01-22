@@ -41,6 +41,13 @@ end
 
 local function calculate_tint(entity, conn, ignored_entity, any_connected, filter)
     if conn.target and conn.target.owner ~= ignored_entity then
+        if conn.flow_direction == "input-output" then
+            local target_flow_direction = conn.target.get_pipe_connections(conn.target_fluidbox_index)[conn.target_pipe_connection_index].flow_direction
+            if target_flow_direction ~= "input-output" or conn.target.owner.unit_number > entity.unit_number then
+                return nil
+            end
+        end
+
         if filter then
             local target_filter = conn.target.get_filter(conn.target_fluidbox_index)
             if target_filter and target_filter.name ~= filter.name then
