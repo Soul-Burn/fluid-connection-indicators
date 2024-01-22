@@ -28,25 +28,25 @@ local tints = {
     ignored = { 0.5, 0.5, 0.5 },
 }
 
-local function calculate_any_connected(pipe_connection, ignored_entity)
+local function calculate_any_connected(pipe_connection)
+    local connected = { input = false, output = false, ["input-output"] = false }
     for _, conn in pairs(pipe_connection) do
-        if conn.target and conn.target.owner ~= ignored_entity then
-            return true
+        if conn.target then
+            connected[conn.flow_direction] = true
         end
     end
-    return false
+    return connected
 end
-
 
 local denied_types = util.list_to_map { "pipe", "pipe-to-ground", "fluid-turret" }
-local ignored_neighbors = util.list_to_map { "straight-rail", "curved-rail", "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" }
+local ignored_pump_neighbors = util.list_to_map { "straight-rail", "curved-rail", "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" }
 
-local function pump_to_rail(entity, neighbor)
-    return entity.type == "pump" and ignored_neighbors[neighbor.type]
+local function neighbor_is_ignored(entity, neighbor)
+    return entity.type == "pump" and ignored_pump_neighbors[neighbor.type]
 end
 
-local function calculate_tint(entity, conn, ignored_entity, any_connected, filter)
-    if conn.target and conn.target.owner ~= ignored_entity then
+local function calculate_tint(entity, conn, any_connected, filter)
+    if conn.target then
         if conn.flow_direction == "input-output" and not denied_types[conn.target.owner.type] then
             local target_flow_direction = conn.target.get_pipe_connections(conn.target_fluidbox_index)[conn.target_pipe_connection_index].flow_direction
             if target_flow_direction ~= "input-output" or conn.target.owner.unit_number > entity.unit_number then
@@ -63,10 +63,20 @@ local function calculate_tint(entity, conn, ignored_entity, any_connected, filte
         return tints.good
     end
 
-    local indication_level = any_connected and 1 or 2
-    local neighbor = entity.surface.find_entities_filtered { position = conn.target_position, limit = 1 }[1]
-    if neighbor and neighbor ~= ignored_entity and not pump_to_rail(entity, neighbor) then
-        indication_level = indication_level + 1 + (#neighbor.fluidbox > 0 and 1 or 0)
+    local indication_level = 2
+    if not entity.surface.can_place_entity { name = "pipe", position = conn.target_position } then
+        for _, neighbor in pairs(entity.surface.find_entities_filtered { position = conn.target_position }) do
+            if neighbor and not neighbor_is_ignored(entity, neighbor) then
+                indication_level = 3
+                if #neighbor.fluidbox > 0 then
+                    indication_level = 4
+                    break
+                end
+            end
+        end
+    end
+    if any_connected then
+        indication_level = indication_level - 1
     end
     local ignored = conn.flow_direction ~= "input-output" and tints.ignored or nil
     local levels = {
@@ -78,19 +88,19 @@ local function calculate_tint(entity, conn, ignored_entity, any_connected, filte
     return levels[indication_level]
 end
 
-local function update_entity(entity, ignored_entity)
-    if denied_types[entity.type] or #entity.fluidbox == 0 then
+local function update_entity(entity)
+    local fb = entity.fluidbox
+    if denied_types[entity.type] or #fb == 0 then
         return
     end
-    local fb = entity.fluidbox
     delete_sprites(entity)
     local indicators = {}
     global.indicators[entity.unit_number] = indicators
     for i = 1, #fb do
-        local any_connected = calculate_any_connected(fb.get_pipe_connections(i), ignored_entity)
+        local any_connected = calculate_any_connected(fb.get_pipe_connections(i))
         local filter = fb.get_filter(i)
         for _, conn in pairs(fb.get_pipe_connections(i)) do
-            local tint = calculate_tint(entity, conn, ignored_entity, any_connected, filter)
+            local tint = calculate_tint(entity, conn, any_connected[conn.flow_direction], filter)
             if tint then
                 table.insert(indicators, draw_indicator(entity, conn, tint))
             end
@@ -102,12 +112,9 @@ local function enlarge_box(bb, r)
     return { math2d.position.subtract(bb.left_top, { r, r }), math2d.position.add(bb.right_bottom, { r, r }) }
 end
 
-local function update_neighbors(entity, ignore_me)
-    local ignored_entity = ignore_me and entity or nil
-    for _, neighbor in pairs(entity.surface.find_entities_filtered { area = enlarge_box(entity.bounding_box, 1) }) do
-        if neighbor ~= entity then
-            update_entity(neighbor, ignored_entity)
-        end
+local function update_neighbors(surface, bounding_box)
+    for _, neighbor in pairs(surface.find_entities(enlarge_box(bounding_box, 1))) do
+        update_entity(neighbor)
     end
 end
 
@@ -117,8 +124,14 @@ local function built(event)
     if not entity or not entity.unit_number then
         return
     end
-    update_entity(entity)
-    update_neighbors(entity)
+    update_neighbors(entity.surface, entity.bounding_box)
+end
+
+local function schedule_update(entity)
+    if not global.areas_to_update then
+        global.areas_to_update = {}
+    end
+    table.insert(global.areas_to_update, {entity.surface, entity.bounding_box})
 end
 
 local function removed(event)
@@ -128,10 +141,11 @@ local function removed(event)
     end
     delete_sprites(entity)
     global.indicators[entity.unit_number] = nil
-    update_neighbors(entity, true)
+    schedule_update(entity)
 end
 
 script.on_init(function()
+    global.areas_to_update = {}
     global.indicators = {}
     for _, force in pairs(game.forces) do
         if #force.players > 0 then
@@ -151,5 +165,16 @@ end
 for _, event in pairs { "on_entity_died", "on_player_mined_entity", "on_robot_mined_entity", "script_raised_destroy" } do
     script.on_event(defines.events[event], removed)
 end
+
+script.on_event(defines.events.on_tick, function()
+    if global.areas_to_update then
+        for _, area in pairs(global.areas_to_update) do
+            if area[1].valid then
+                update_neighbors(area[1], area[2])
+            end
+        end
+        global.areas_to_update = {}
+    end
+end)
 
 script.on_event(defines.events.on_player_rotated_entity, built)

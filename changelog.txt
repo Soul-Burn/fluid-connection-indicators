@@ -4,6 +4,7 @@ Date: ????
   Changes:
     - Ignore connection from pump to rail
     - Ignoring pipes when deciding if a two-way flow should render or not
+    - Handle deletion better and entities with non-colliding collision boxes
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.2
 Date: 2024-01-22
