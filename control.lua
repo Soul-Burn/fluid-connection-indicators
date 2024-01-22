@@ -98,6 +98,15 @@ end
 
 script.on_init(function()
     global.indicators = {}
+    for _, force in pairs(game.forces) do
+        if #force.players > 0 then
+            for _, surface in pairs(game.surfaces) do
+                for _, entity in pairs(surface.find_entities_filtered { force = force }) do
+                    update_entity(entity)
+                end
+            end
+        end
+    end
 end)
 
 for _, event in pairs { "on_built_entity", "on_robot_built_entity", "on_entity_cloned", "script_raised_built", "script_raised_revive" } do
