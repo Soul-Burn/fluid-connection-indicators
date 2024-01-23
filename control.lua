@@ -38,7 +38,7 @@ local function calculate_any_connected(pipe_connection)
     return connected
 end
 
-local denied_types = util.list_to_map { "pipe", "pipe-to-ground", "fluid-turret" }
+local denied_types = util.list_to_map { "pipe", "pipe-to-ground" }
 local ignored_pump_neighbors = util.list_to_map { "straight-rail", "curved-rail", "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" }
 
 local function neighbor_is_ignored(entity, neighbor)
@@ -96,7 +96,7 @@ local function update_entity(entity)
     delete_sprites(entity)
     local indicators = {}
     global.indicators[entity.unit_number] = indicators
-    for i = 1, #fb do
+    for i = 1, (entity.type == "fluid-turret" and 1 or #fb) do
         local any_connected = calculate_any_connected(fb.get_pipe_connections(i))
         local filter = fb.get_filter(i)
         for _, conn in pairs(fb.get_pipe_connections(i)) do
