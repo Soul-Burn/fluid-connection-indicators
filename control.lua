@@ -131,7 +131,7 @@ local function schedule_update(entity)
     if not global.areas_to_update then
         global.areas_to_update = {}
     end
-    table.insert(global.areas_to_update, {entity.surface, entity.bounding_box})
+    table.insert(global.areas_to_update, { entity.surface, entity.bounding_box })
 end
 
 local function removed(event)
@@ -165,6 +165,16 @@ end
 for _, event in pairs { "on_entity_died", "on_player_mined_entity", "on_robot_mined_entity", "script_raised_destroy" } do
     script.on_event(defines.events[event], removed)
 end
+
+script.on_event(defines.events.script_raised_teleported, function(event)
+    local entity = event.entity
+    local dims = math2d.position.subtract(entity.bounding_box.right_bottom, entity.bounding_box.left_top)
+    update_neighbors(
+        game.surfaces[event.old_surface_index],
+        math2d.bounding_box.create_from_centre(event.old_position, dims.x, dims.y)
+    )
+    update_entity(entity)
+end)
 
 script.on_event(defines.events.on_tick, function()
     if global.areas_to_update then
