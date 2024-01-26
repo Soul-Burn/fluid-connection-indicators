@@ -108,7 +108,6 @@ local function update_entity(entity)
     end
 end
 
-
 local function enlarge_box(bb, r)
     return { math2d.position.subtract(bb.left_top, { r, r }), math2d.position.add(bb.right_bottom, { r, r }) }
 end
