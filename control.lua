@@ -108,6 +108,7 @@ local function update_entity(entity)
     end
 end
 
+
 local function enlarge_box(bb, r)
     return { math2d.position.subtract(bb.left_top, { r, r }), math2d.position.add(bb.right_bottom, { r, r }) }
 end
@@ -144,7 +145,15 @@ local function removed(event)
     schedule_update(entity)
 end
 
+local function from_dollies(event)
+    update_entity(event.moved_entity)
+end
+
 script.on_init(function()
+    if remote.interfaces["PickerDollies"] and remote.interfaces["PickerDollies"]["dolly_moved_entity_id"] then
+        local reg=remote.call("PickerDollies", "dolly_moved_entity_id")
+        script.on_event(reg, from_dollies)
+    end
     global.areas_to_update = {}
     global.indicators = {}
     for _, force in pairs(game.forces) do
@@ -155,6 +164,12 @@ script.on_init(function()
                 end
             end
         end
+    end
+end)
+
+script.on_load(function()
+    if remote.interfaces["PickerDollies"] then
+        script.on_event(remote.call("PickerDollies", "dolly_moved_entity_id"), from_dollies)
     end
 end)
 
