@@ -144,7 +144,24 @@ local function removed(event)
     schedule_update(entity)
 end
 
+local function teleported(entity, old_surface_index, old_position)
+    local dims = math2d.position.subtract(entity.bounding_box.right_bottom, entity.bounding_box.left_top)
+    update_neighbors(game.surfaces[old_surface_index], math2d.bounding_box.create_from_centre(old_position, dims.x, dims.y))
+    update_entity(entity)
+    update_neighbors(entity.surface, entity.bounding_box)
+end
+
+local function register_dollies()
+    local pd = remote.interfaces["PickerDollies"]
+    if pd and pd["dolly_moved_entity_id"] then
+        script.on_event(remote.call("PickerDollies", "dolly_moved_entity_id"), function(event)
+            teleported(event.moved_entity, event.moved_entity.surface.index, event.start_pos)
+        end)
+    end
+end
+
 script.on_init(function()
+    register_dollies()
     global.areas_to_update = {}
     global.indicators = {}
     for _, force in pairs(game.forces) do
@@ -158,6 +175,10 @@ script.on_init(function()
     end
 end)
 
+script.on_load(function()
+    register_dollies()
+end)
+
 for _, event in pairs { "on_built_entity", "on_robot_built_entity", "on_entity_cloned", "script_raised_built", "script_raised_revive" } do
     script.on_event(defines.events[event], built)
 end
@@ -167,13 +188,7 @@ for _, event in pairs { "on_entity_died", "on_player_mined_entity", "on_robot_mi
 end
 
 script.on_event(defines.events.script_raised_teleported, function(event)
-    local entity = event.entity
-    local dims = math2d.position.subtract(entity.bounding_box.right_bottom, entity.bounding_box.left_top)
-    update_neighbors(
-        game.surfaces[event.old_surface_index],
-        math2d.bounding_box.create_from_centre(event.old_position, dims.x, dims.y)
-    )
-    update_entity(entity)
+    teleported(event.entity, event.old_surface_index, event.old_position)
 end)
 
 script.on_event(defines.events.on_tick, function()
