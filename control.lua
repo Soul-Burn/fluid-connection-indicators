@@ -88,7 +88,7 @@ local function calculate_tint(entity, conn, any_connected, filter)
     return levels[indication_level]
 end
 
-local function update_entity(entity)
+local function update_single_entity(entity)
     local fb = entity.fluidbox
     if denied_types[entity.type] or #fb == 0 then
         return
@@ -114,8 +114,12 @@ end
 
 local function update_area(surface, bounding_box)
     for _, neighbor in pairs(surface.find_entities(enlarge_box(bounding_box, 1))) do
-        update_entity(neighbor)
+        update_single_entity(neighbor)
     end
+end
+
+local function update_entity_area(entity)
+    update_area(entity.surface, entity.bounding_box)
 end
 
 local function built(event)
@@ -124,7 +128,7 @@ local function built(event)
     if not entity or not entity.unit_number then
         return
     end
-    update_area(entity.surface, entity.bounding_box)
+    update_entity_area(entity, 1)
 end
 
 local function schedule_update(entity)
@@ -167,7 +171,7 @@ script.on_init(function()
         if #force.players > 0 then
             for _, surface in pairs(game.surfaces) do
                 for _, entity in pairs(surface.find_entities_filtered { force = force }) do
-                    update_entity(entity)
+                    update_single_entity(entity)
                 end
             end
         end
@@ -192,12 +196,12 @@ end)
 
 script.on_event(defines.events.on_gui_closed, function(event)
     if event.entity then
-        update_entity(event.entity)
+        update_entity_area(event.entity)
     end
 end)
 
 script.on_event(defines.events.on_entity_settings_pasted, function(event)
-    update_entity(event.destination)
+    update_entity_area(event.destination)
 end)
 
 script.on_event(defines.events.on_tick, function()
@@ -211,7 +215,7 @@ script.on_event(defines.events.on_tick, function()
     end
     for _, player in pairs(game.players) do
         if player.opened and player.opened.valid then
-            update_entity(player.opened)
+            update_entity_area(player.opened)
         end
     end
 end)
