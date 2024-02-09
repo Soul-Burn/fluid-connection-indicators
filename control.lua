@@ -112,7 +112,7 @@ local function enlarge_box(bb, r)
     return { math2d.position.subtract(bb.left_top, { r, r }), math2d.position.add(bb.right_bottom, { r, r }) }
 end
 
-local function update_neighbors(surface, bounding_box)
+local function update_area(surface, bounding_box)
     for _, neighbor in pairs(surface.find_entities(enlarge_box(bounding_box, 1))) do
         update_entity(neighbor)
     end
@@ -124,7 +124,7 @@ local function built(event)
     if not entity or not entity.unit_number then
         return
     end
-    update_neighbors(entity.surface, entity.bounding_box)
+    update_area(entity.surface, entity.bounding_box)
 end
 
 local function schedule_update(entity)
@@ -146,9 +146,8 @@ end
 
 local function teleported(entity, old_surface_index, old_position)
     local dims = math2d.position.subtract(entity.bounding_box.right_bottom, entity.bounding_box.left_top)
-    update_neighbors(game.surfaces[old_surface_index], math2d.bounding_box.create_from_centre(old_position, dims.x, dims.y))
-    update_entity(entity)
-    update_neighbors(entity.surface, entity.bounding_box)
+    update_area(game.surfaces[old_surface_index], math2d.bounding_box.create_from_centre(old_position, dims.x, dims.y))
+    update_area(entity.surface, entity.bounding_box)
 end
 
 local function register_dollies()
@@ -191,14 +190,29 @@ script.on_event(defines.events.script_raised_teleported, function(event)
     teleported(event.entity, event.old_surface_index, event.old_position)
 end)
 
+script.on_event(defines.events.on_gui_closed, function(event)
+    if event.entity then
+        update_entity(event.entity)
+    end
+end)
+
+script.on_event(defines.events.on_entity_settings_pasted, function(event)
+    update_entity(event.destination)
+end)
+
 script.on_event(defines.events.on_tick, function()
     if global.areas_to_update then
         for _, area in pairs(global.areas_to_update) do
             if area[1].valid then
-                update_neighbors(area[1], area[2])
+                update_area(area[1], area[2])
             end
         end
         global.areas_to_update = {}
+    end
+    for _, player in pairs(game.players) do
+        if player.opened and player.opened.valid then
+            update_entity(player.opened)
+        end
     end
 end)
 
