@@ -1,6 +1,8 @@
 require("util")
 local math2d = require("math2d")
+local update_inserter = require("script/update_inserter")
 local update_fluid_entity = require("script/update_fluid_entity")
+local common = require("script/common")
 
 local function replace_sprites(entity, indicators)
     if global.indicators[entity.unit_number] then
@@ -25,7 +27,10 @@ end
 
 local function update_single_entity(entity)
     local indicators = {}
-    if update_fluid_entity(indicators, entity) then
+    local updated = false
+    updated = update_fluid_entity(indicators, entity) or updated
+    updated = update_inserter(indicators, entity) or updated
+    if updated then
         replace_sprites(entity, indicators)
     end
 end
@@ -112,7 +117,7 @@ script.on_event(defines.events.on_tick, function()
     if global.areas_to_update and global.after_tick and game.tick > global.after_tick then
         for _, area in pairs(global.areas_to_update) do
             if area[1].valid then
-                for _, neighbor in pairs(area[1].find_entities(enlarge_box(area[2], 1))) do
+                for _, neighbor in pairs(area[1].find_entities(enlarge_box(area[2], common.inserter_distance))) do
                     update_single_entity(neighbor)
                 end
             end

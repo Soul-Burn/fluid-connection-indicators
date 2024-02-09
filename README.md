@@ -1,6 +1,8 @@
 # Features
 
-Shows indicators on fluid connections:
+Shows indicators on fluid connections, inserters, and mining drills.
+
+For fluid connections:
 
 * Green - Pipe is connected
 * Blue - Pipe is not connected
@@ -10,6 +12,12 @@ Shows indicators on fluid connections:
 
 When a fluid is connected in another pipe, the indication level goes down.
 
-# Known issues
+For inserters:
 
-* Indicators do not update when a recipe is changed. Rotating the entity or rebuilding it would update the indicators.
+* Red - When pickup or drop position is obstructed, or open space not served by another inserter.
+* Yellow - Normal behavior.
+
+For inserters and mining drills:
+
+* Red - When pickup or drop position is obstructed or an open space not served by an inserter/drill
+* Yellow/nothing - Connected to a relevant entity or an open space served by another inserter/drill

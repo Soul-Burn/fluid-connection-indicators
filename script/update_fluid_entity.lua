@@ -1,5 +1,6 @@
 require("util")
 local math2d = require("math2d")
+local common = require("common")
 
 local tints = {
     error = { 1.0, 0.0, 0.0 },
@@ -34,10 +35,8 @@ end
 
 local denied_types = util.list_to_map { "pipe", "pipe-to-ground" }
 
-local ignored_pump_neighbors = util.list_to_map { "straight-rail", "curved-rail", "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" }
-
 local function neighbor_is_ignored(entity, neighbor)
-    return entity.type == "pump" and ignored_pump_neighbors[neighbor.type]
+    return entity.type == "pump" and common.ignored_rail_neighbors[neighbor.type]
 end
 
 local function calculate_tint(entity, conn, any_connected, filter)

@@ -2,6 +2,7 @@
 Version: 0.1.5
 Date: ????
   Changes:
+    - Added support for inserters and miners
     - Update while entity is open or settings pasted
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.4
