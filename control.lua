@@ -110,6 +110,13 @@ local function handle_opened_entity()
 end
 
 local function iterate_all()
+    for _, indicators in pairs(global.indicators) do
+        for _, indicator in pairs(indicators) do
+            rendering.destroy(indicator)
+        end
+    end
+    global.indicators = {}
+
     local forces = {}
     for _, force in pairs(game.forces) do
         if #force.players > 0 then
@@ -127,11 +134,10 @@ end
 script.on_init(function()
     ensure_global()
     register_dollies()
-    iterate_all()
+    global.update_all = true
 end)
 
 script.on_load(function()
-    ensure_global()
     register_dollies()
 end)
 
@@ -158,6 +164,10 @@ script.on_event(defines.events.on_entity_settings_pasted, function(event)
 end)
 
 script.on_event(defines.events.on_tick, function()
+    if global.update_all then
+        iterate_all()
+        global.update_all = nil
+    end
     handle_scheduled_updates(global.scheduler)
     handle_opened_entity()
 end)
