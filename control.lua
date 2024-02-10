@@ -1,8 +1,25 @@
 require("util")
-local math2d = require("math2d")
+local flib_bb = require("__flib__/bounding-box")
 local update_inserter = require("script/update_inserter")
 local update_fluid_entity = require("script/update_fluid_entity")
 local common = require("script/common")
+
+local types_to_update = {
+    "inserter", "boiler", "assembling-machine", "furnace", "rocket-silo", "fluid-turret", "generator", "mining-drill",
+    "offshore-pump", "pump", "storage-tank",
+}
+
+local function ensure_global()
+    if not global.scheduler then
+        global.scheduler = {
+            areas_to_update = {},
+            after_tick = 0,
+        }
+    end
+    if not global.indicators then
+        global.indicators = {}
+    end
+end
 
 local function replace_sprites(entity, indicators)
     if global.indicators[entity.unit_number] then
@@ -14,29 +31,29 @@ local function replace_sprites(entity, indicators)
 end
 
 local function schedule_update_area(area)
-    if not global.areas_to_update then
-        global.areas_to_update = {}
-    end
-    global.after_tick = game.tick
-    table.insert(global.areas_to_update, area)
+    global.scheduler.after_tick = game.tick
+    table.insert(global.scheduler.areas_to_update, area)
 end
 
 local function schedule_update_entity(entity)
     schedule_update_area { entity.surface, entity.bounding_box }
 end
 
-local function update_single_entity(entity)
+local function update_single_entity(entity, force_update)
+    if not entity.valid then
+        return
+    end
     local indicators = {}
-    local updated = false
-    updated = update_fluid_entity(indicators, entity) or updated
-    updated = update_inserter(indicators, entity) or updated
+    local updated = force_update or false
+    if settings.global["fci-fluid-entities"].value then
+        updated = update_fluid_entity(indicators, entity) or updated
+    end
+    if settings.global["fci-inserters"].value then
+        updated = update_inserter(indicators, entity) or updated
+    end
     if updated then
         replace_sprites(entity, indicators)
     end
-end
-
-local function enlarge_box(bb, r)
-    return { math2d.position.subtract(bb.left_top, { r, r }), math2d.position.add(bb.right_bottom, { r, r }) }
 end
 
 local function built(event)
@@ -58,8 +75,7 @@ local function removed(event)
 end
 
 local function teleported(entity, old_surface_index, old_position)
-    local dims = math2d.position.subtract(entity.bounding_box.right_bottom, entity.bounding_box.left_top)
-    schedule_update_area(game.surfaces[old_surface_index], math2d.bounding_box.create_from_centre(old_position, dims.x, dims.y))
+    schedule_update_area(game.surfaces[old_surface_index], flib_bb.recenter_on(entity.bounding_box, old_position))
     schedule_update_area(entity.surface, entity.bounding_box)
 end
 
@@ -72,22 +88,50 @@ local function register_dollies()
     end
 end
 
-script.on_init(function()
-    register_dollies()
-    global.areas_to_update = {}
-    global.indicators = {}
-    for _, force in pairs(game.forces) do
-        if #force.players > 0 then
-            for _, surface in pairs(game.surfaces) do
-                for _, entity in pairs(surface.find_entities_filtered { force = force }) do
-                    update_single_entity(entity)
+local function handle_scheduled_updates(scheduler)
+    if game.tick > scheduler.after_tick then
+        for _, area in pairs(scheduler.areas_to_update) do
+            if area[1].valid then
+                for _, neighbor in pairs(area[1].find_entities(flib_bb.resize(area[2], common.inserter_distance))) do
+                    update_single_entity(neighbor)
                 end
             end
         end
+        scheduler.areas_to_update = {}
     end
+end
+
+local function handle_opened_entity()
+    for _, player in pairs(game.players) do
+        if player.opened and player.opened_gui_type == defines.gui_type.entity and player.opened.valid then
+            schedule_update_entity(player.opened)
+        end
+    end
+end
+
+local function iterate_all()
+    local forces = {}
+    for _, force in pairs(game.forces) do
+        if #force.players > 0 then
+            table.insert(forces, force)
+        end
+    end
+
+    for _, surface in pairs(game.surfaces) do
+        for _, entity in pairs(surface.find_entities_filtered { force = forces, type = types_to_update }) do
+            update_single_entity(entity, true)
+        end
+    end
+end
+
+script.on_init(function()
+    ensure_global()
+    register_dollies()
+    iterate_all()
 end)
 
 script.on_load(function()
+    ensure_global()
     register_dollies()
 end)
 
@@ -114,19 +158,12 @@ script.on_event(defines.events.on_entity_settings_pasted, function(event)
 end)
 
 script.on_event(defines.events.on_tick, function()
-    if global.areas_to_update and global.after_tick and game.tick > global.after_tick then
-        for _, area in pairs(global.areas_to_update) do
-            if area[1].valid then
-                for _, neighbor in pairs(area[1].find_entities(enlarge_box(area[2], common.inserter_distance))) do
-                    update_single_entity(neighbor)
-                end
-            end
-        end
-        global.areas_to_update = {}
-    end
-    for _, player in pairs(game.players) do
-        if player.opened and player.opened.valid then
-            schedule_update_entity(player.opened)
-        end
+    handle_scheduled_updates(global.scheduler)
+    handle_opened_entity()
+end)
+
+script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
+    if event.setting:match("^fci%-") then
+        iterate_all()
     end
 end)

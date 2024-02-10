@@ -4,6 +4,7 @@ Date: ????
   Changes:
     - Added support for inserters and miners
     - Update while entity is open or settings pasted
+    - Added settings for inserter/fluid overlays
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.4
 Date: 2024-01-29

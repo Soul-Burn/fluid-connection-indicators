@@ -21,3 +21,8 @@ For inserters and mining drills:
 
 * Red - When pickup or drop position is obstructed or an open space not served by an inserter/drill
 * Yellow/nothing - Connected to a relevant entity or an open space served by another inserter/drill
+
+# Settings
+
+* Enable indicators on fluid connection entities
+* Enable indicators on inserters and mining drills
