@@ -2,13 +2,6 @@ require("util")
 local math2d = require("math2d")
 local common = require("common")
 
-local tints = {
-    error = { 1.0, 0.0, 0.0 },
-    warning = { 1.0, 1.0, 0.0 },
-    good = { 0.0, 1.0, 0.0 },
-    ignored = { 0.5, 0.5, 0.5 },
-}
-
 local function draw_fluid_indicator(entity, conn, tint)
     return rendering.draw_sprite {
         sprite = conn.flow_direction == "input-output" and "fci-flow-arrow-both-ways" or "fci-flow-arrow",
@@ -44,17 +37,17 @@ local function calculate_tint(entity, conn, any_connected, filter)
         if conn.flow_direction == "input-output" and not denied_types[conn.target.owner.type] then
             local target_flow_direction = conn.target.get_pipe_connections(conn.target_fluidbox_index)[conn.target_pipe_connection_index].flow_direction
             if target_flow_direction ~= "input-output" or conn.target.owner.unit_number > entity.unit_number then
-                return nil
+                return "nothing"
             end
         end
 
         if filter then
             local target_filter = conn.target.get_filter(conn.target_fluidbox_index)
             if target_filter and target_filter.name ~= filter.name then
-                return tints.error
+                return "error"
             end
         end
-        return tints.good
+        return "good"
     end
 
     local indication_level = 2
@@ -72,17 +65,42 @@ local function calculate_tint(entity, conn, any_connected, filter)
     if any_connected then
         indication_level = indication_level - 1
     end
-    local ignored = conn.flow_direction ~= "input-output" and tints.ignored or nil
+    local ignored = conn.flow_direction == "input-output" and "nothing" or "ignored"
     local levels = {
         ignored,
-        any_connected and ignored or nil,
-        tints.warning,
-        tints.error,
+        any_connected and ignored or "awaiting",
+        "warning",
+        "error",
     }
     return levels[indication_level]
 end
 
-local function update_fluid_entity(indicators, entity)
+local tints = {
+    red = { 1.0, 0.0, 0.0 },
+    yellow = { 1.0, 1.0, 0.0 },
+    green = { 0.0, 1.0, 0.0 },
+    gray = { 0.5, 0.5, 0.5 },
+}
+
+local full_tints = {
+    error = tints.red,
+    warning = tints.yellow,
+    good = tints.green,
+    ignored = tints.gray,
+    awaiting = nil,
+    nothing = nil,
+}
+
+local lite_tints = {
+    error = tints.red,
+    warning = tints.yellow,
+    good = nil,
+    ignored = nil,
+    awaiting = tints.yellow,
+    nothing = nil,
+}
+
+local function update_fluid_entity(indicators, entity, lite)
     local fb = entity.fluidbox
     if denied_types[entity.type] or #fb == 0 then
         return false
@@ -92,6 +110,9 @@ local function update_fluid_entity(indicators, entity)
         local filter = fb.get_filter(i)
         for _, conn in pairs(fb.get_pipe_connections(i)) do
             local tint = calculate_tint(entity, conn, any_connected[conn.flow_direction], filter)
+
+            tint = (lite and lite_tints or full_tints)[tint]
+
             if tint then
                 table.insert(indicators, draw_fluid_indicator(entity, conn, tint))
             end

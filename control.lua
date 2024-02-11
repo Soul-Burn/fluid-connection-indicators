@@ -45,8 +45,9 @@ local function update_single_entity(entity, force_update)
     end
     local indicators = {}
     local updated = force_update or false
-    if settings.global["fci-fluid-entities"].value then
-        updated = update_fluid_entity(indicators, entity) or updated
+    local fluid_mode = settings.global["fci-fluid-entities"].value
+    if fluid_mode ~= "off" then
+        updated = update_fluid_entity(indicators, entity, fluid_mode == "lite") or updated
     end
     if settings.global["fci-inserters"].value then
         updated = update_inserter(indicators, entity) or updated

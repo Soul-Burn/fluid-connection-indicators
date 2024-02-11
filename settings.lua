@@ -1,9 +1,10 @@
 data:extend {
     {
-        type = "bool-setting",
+        type = "string-setting",
         name = "fci-fluid-entities",
         setting_type = "runtime-global",
-        default_value = true,
+        default_value = "lite",
+        allowed_values = {"off", "lite", "full" },
         order = "a",
     },
     {
