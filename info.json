@@ -1,10 +1,10 @@
 {
   "name": "fluid-connection-indicators",
   "version": "0.1.5",
-  "title": "Fluid Connection Indicators",
+  "title": "Connection Indicators",
   "author": "Soul-Burn",
   "factorio_version": "1.1",
-  "description": "Shows indicators when fluid connections are connected or obstructed",
+  "description": "Shows indicators when fluid connections, inserters, and miners which are connected or obstructed",
   "dependencies": [
     "base >= 1.1.90",
     "flib >= 0.13.0"

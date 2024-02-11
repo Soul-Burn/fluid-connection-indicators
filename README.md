@@ -6,6 +6,8 @@ Shows indicators on fluid connections, inserters, and mining drills.
 
 ### Lightweight mode (default)
 
+![](https://raw.githubusercontent.com/Soul-Burn/fluid-connection-indicators/work/.external/lite.png)
+
 Less cluttered. Only shows indicators when attention is required.
 
 * Blue - Pipe is connected, or this fluid is connected in another pipe
@@ -15,6 +17,8 @@ Less cluttered. Only shows indicators when attention is required.
 When a fluid is connected in another pipe, the indication level goes down.
 
 ### Full mode (old default)
+
+![](https://raw.githubusercontent.com/Soul-Burn/fluid-connection-indicators/work/.external/full.png)
 
 More colorful. Shows indicators also on active and unnecessary connections.
 
