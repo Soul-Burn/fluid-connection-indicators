@@ -10,7 +10,8 @@
     "flib >= 0.13.0"
   ],
   "package": {
-    "git_publish_branch": "main",
+    "git_publish_branch": "work",
+    "sync_portal_details": true,
     "": ""
   }
 }
