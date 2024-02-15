@@ -30,13 +30,13 @@ local function replace_sprites(entity, indicators)
     global.indicators[entity.unit_number] = next(indicators) and indicators or nil
 end
 
-local function schedule_update_area(area)
+local function schedule_update_area(surface, bbox)
     global.scheduler.after_tick = game.tick
-    table.insert(global.scheduler.areas_to_update, area)
+    table.insert(global.scheduler.areas_to_update, { surface, bbox })
 end
 
 local function schedule_update_entity(entity)
-    schedule_update_area { entity.surface, entity.bounding_box }
+    schedule_update_area(entity.surface, entity.bounding_box)
 end
 
 local function update_single_entity(entity, force_update)
