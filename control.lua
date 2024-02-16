@@ -30,6 +30,15 @@ local function replace_sprites(entity, indicators)
     global.indicators[entity.unit_number] = next(indicators) and indicators or nil
 end
 
+local function clear_indicators()
+    for _, indicators in pairs(global.indicators) do
+        for _, indicator in pairs(indicators) do
+            rendering.destroy(indicator)
+        end
+    end
+    global.indicators = {}
+end
+
 local function schedule_update_area(surface, bbox)
     global.scheduler.after_tick = game.tick
     table.insert(global.scheduler.areas_to_update, { surface, bbox })
@@ -40,17 +49,19 @@ local function schedule_update_entity(entity)
 end
 
 local function update_single_entity(entity, force_update)
-    if not entity.valid then
+    if not entity.valid or not entity.unit_number then
         return
     end
     local indicators = {}
     local updated = force_update or false
-    local fluid_mode = settings.global["fci-fluid-entities"].value
-    if fluid_mode ~= "off" then
-        updated = update_fluid_entity(indicators, entity, fluid_mode == "lite") or updated
-    end
-    if settings.global["fci-inserters"].value then
-        updated = update_inserter(indicators, entity) or updated
+    if force_update or not settings.global["fci-on-hover-mode"].value then
+        local fluid_mode = settings.global["fci-fluid-entities"].value
+        if fluid_mode ~= "off" then
+            updated = update_fluid_entity(indicators, entity, fluid_mode == "lite") or updated
+        end
+        if settings.global["fci-inserters"].value then
+            updated = update_inserter(indicators, entity) or updated
+        end
     end
     if updated then
         replace_sprites(entity, indicators)
@@ -110,13 +121,19 @@ local function handle_opened_entity()
     end
 end
 
-local function iterate_all()
-    for _, indicators in pairs(global.indicators) do
-        for _, indicator in pairs(indicators) do
-            rendering.destroy(indicator)
+local function handle_selected_entity()
+    if settings.global["fci-on-hover-mode"].value then
+        clear_indicators()
+        for _, player in pairs(game.players) do
+            if player.selected then
+                update_single_entity(player.selected, true)
+            end
         end
     end
-    global.indicators = {}
+end
+
+local function iterate_all()
+    clear_indicators()
 
     local forces = {}
     for _, force in pairs(game.forces) do
@@ -127,7 +144,7 @@ local function iterate_all()
 
     for _, surface in pairs(game.surfaces) do
         for _, entity in pairs(surface.find_entities_filtered { force = forces, type = types_to_update }) do
-            update_single_entity(entity, true)
+            update_single_entity(entity)
         end
     end
 end
@@ -171,6 +188,7 @@ script.on_event(defines.events.on_tick, function()
     end
     handle_scheduled_updates(global.scheduler)
     handle_opened_entity()
+    handle_selected_entity()
 end)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)

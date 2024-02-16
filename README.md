@@ -42,3 +42,4 @@ When a fluid is connected in another pipe, the indication level goes down.
   * Lite - Only show indicators on issues
   * Full - Shows indicators in more cases
 * Enable indicators on inserters and mining drills
+* Only show indicators when hovering over entities
