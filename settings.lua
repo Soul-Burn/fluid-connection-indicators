@@ -25,7 +25,7 @@ data:extend {
         type = "string-setting",
         name = "fci-ignored-entities",
         setting_type = "runtime-global",
-        default_value = "",
+        default_value = "supply-depot",
         allow_blank = true,
         auto_trim = true,
         order = "d",

@@ -3,6 +3,8 @@ Version: 0.1.7
 Date: ????
   Changes:
     - Added setting to ignore specific entities by name
+  Compatibility:
+    - Fixed indicators not disappearing on Transport Drones supply depots
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.6
 Date: 2024-02-16
