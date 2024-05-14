@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.7
-Date: ????
+Date: 2024-05-14
   Changes:
     - Added setting to ignore specific entities by name
   Compatibility:
