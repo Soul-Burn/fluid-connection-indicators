@@ -48,8 +48,17 @@ local function schedule_update_entity(entity)
     schedule_update_area(entity.surface, entity.bounding_box)
 end
 
+
+local ignored_entity_names
+local function is_entity_name_ignored(name)
+    if not ignored_entity_names then
+        ignored_entity_names = util.list_to_map(util.split(settings.global["fci-ignored-entities"].value, ","))
+    end
+    return ignored_entity_names[name]
+end
+
 local function update_single_entity(entity, force_update)
-    if not entity.valid or not entity.unit_number then
+    if not entity.valid or not entity.unit_number or is_entity_name_ignored(entity.name) then
         return
     end
     local indicators = {}
@@ -194,5 +203,6 @@ end)
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
     if event.setting:match("^fci%-") then
         iterate_all()
+        ignored_entity_names = nil
     end
 end)

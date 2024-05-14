@@ -43,3 +43,9 @@ When a fluid is connected in another pipe, the indication level goes down.
   * Full - Shows indicators in more cases
 * Enable indicators on inserters and mining drills
 * Only show indicators when hovering over entities
+* Ignore entities by name, for compatibility with mods that don't raise events on entity destruction
+
+# Known issues
+
+* Indicators only disappear a frame after entities are removed or changed.
+* Mods that destroy entities without raising can cause indicators to get stuck. Use ignore entities to exclude them.

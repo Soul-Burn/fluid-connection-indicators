@@ -21,4 +21,13 @@ data:extend {
         default_value = false,
         order = "c",
     },
+    {
+        type = "string-setting",
+        name = "fci-ignored-entities",
+        setting_type = "runtime-global",
+        default_value = "",
+        allow_blank = true,
+        auto_trim = true,
+        order = "d",
+    },
 }
