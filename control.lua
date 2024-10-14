@@ -9,39 +9,39 @@ local types_to_update = {
     "offshore-pump", "pump", "storage-tank",
 }
 
-local function ensure_global()
-    if not global.scheduler then
-        global.scheduler = {
+local function ensure_storage()
+    if not storage.scheduler then
+        storage.scheduler = {
             areas_to_update = {},
             after_tick = 0,
         }
     end
-    if not global.indicators then
-        global.indicators = {}
+    if not storage.indicators then
+        storage.indicators = {}
     end
 end
 
 local function replace_sprites(entity, indicators)
-    if global.indicators[entity.unit_number] then
-        for _, indicator in pairs(global.indicators[entity.unit_number]) do
-            rendering.destroy(indicator)
+    if storage.indicators[entity.unit_number] then
+        for _, indicator in pairs(storage.indicators[entity.unit_number]) do
+            indicator.destroy()
         end
     end
-    global.indicators[entity.unit_number] = next(indicators) and indicators or nil
+    storage.indicators[entity.unit_number] = next(indicators) and indicators or nil
 end
 
 local function clear_indicators()
-    for _, indicators in pairs(global.indicators) do
+    for _, indicators in pairs(storage.indicators) do
         for _, indicator in pairs(indicators) do
-            rendering.destroy(indicator)
+            indicator.destroy()
         end
     end
-    global.indicators = {}
+    storage.indicators = {}
 end
 
 local function schedule_update_area(surface, bbox)
-    global.scheduler.after_tick = game.tick
-    table.insert(global.scheduler.areas_to_update, { surface, bbox })
+    storage.scheduler.after_tick = game.tick
+    table.insert(storage.scheduler.areas_to_update, { surface, bbox })
 end
 
 local function schedule_update_entity(entity)
@@ -159,9 +159,9 @@ local function iterate_all()
 end
 
 script.on_init(function()
-    ensure_global()
+    ensure_storage()
     register_dollies()
-    global.update_all = true
+    storage.update_all = true
 end)
 
 script.on_load(function()
@@ -191,11 +191,11 @@ script.on_event(defines.events.on_entity_settings_pasted, function(event)
 end)
 
 script.on_event(defines.events.on_tick, function()
-    if global.update_all then
+    if storage.update_all then
         iterate_all()
-        global.update_all = nil
+        storage.update_all = nil
     end
-    handle_scheduled_updates(global.scheduler)
+    handle_scheduled_updates(storage.scheduler)
     handle_opened_entity()
     handle_selected_entity()
 end)
