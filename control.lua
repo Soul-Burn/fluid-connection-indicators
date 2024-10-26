@@ -80,7 +80,7 @@ end
 local function built(event)
     ---@type LuaEntity
     local entity = event.created_entity or event.entity or event.destination
-    if not entity or not entity.unit_number then
+    if not entity or not entity.unit_number or entity.type == "entity-ghost" then
         return
     end
     schedule_update_entity(entity)
@@ -168,11 +168,17 @@ script.on_load(function()
     register_dollies()
 end)
 
-for _, event in pairs { "on_built_entity", "on_robot_built_entity", "on_entity_cloned", "script_raised_built", "script_raised_revive", "on_player_rotated_entity" } do
+for _, event in pairs {
+    "on_built_entity", "on_robot_built_entity", "on_entity_cloned", "script_raised_built", "script_raised_revive",
+    "on_player_rotated_entity", "on_player_flipped_entity", "on_space_platform_built_entity",
+} do
     script.on_event(defines.events[event], built)
 end
 
-for _, event in pairs { "on_entity_died", "on_player_mined_entity", "on_robot_mined_entity", "script_raised_destroy" } do
+for _, event in pairs {
+    "on_entity_died", "on_player_mined_entity", "on_robot_mined_entity",
+    "script_raised_destroy", "on_space_platform_mined_entity"
+} do
     script.on_event(defines.events[event], removed)
 end
 
