@@ -26,7 +26,7 @@ local function calculate_any_connected(pipe_connection)
     return connected
 end
 
-local denied_types = util.list_to_map { "pipe", "pipe-to-ground" }
+local denied_types = util.list_to_map { "pipe", "pipe-to-ground", "entity-ghost" }
 
 local function neighbor_is_ignored(entity, neighbor)
     return entity.type == "pump" and common.ignored_rail_neighbors[neighbor.type]
