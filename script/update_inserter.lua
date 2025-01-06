@@ -57,6 +57,9 @@ local entity_types_with_inventory = util.list_to_map {
     "artillery-turret", "beacon", "boiler", "burner-generator", "container", "logistic-container", "infinity-container",
     "assembling-machine", "rocket-silo", "furnace", "lab", "linked-container", "market", "reactor", "roboport",
     "linked-belt", "loader-1x1", "loader", "splitter", "transport-belt", "underground-belt", "ammo-turret",
+    "lane-splitter",
+    -- Space age entities
+    "agricultural-tower", "asteroid-collector", "cargo-landing-pad", "fusion-reactor", "space-platform-hub",
 }
 
 for key in pairs(common.ignored_rail_neighbors) do

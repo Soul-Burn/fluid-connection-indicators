@@ -5,6 +5,7 @@ Date: ????
     - Ignore ghosts when handling fluid entities
   Changes:
     - Support for ignoring new rails
+    - Support for inserters with Space Age entities
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.1
 Date: 2024-10-26
