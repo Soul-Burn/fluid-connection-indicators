@@ -3,6 +3,8 @@ Version: 0.2.2
 Date: ????
   Bugfixes:
     - Ignore ghosts when handling fluid entities
+  Changes:
+    - Support for ignoring new rails
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.1
 Date: 2024-10-26
