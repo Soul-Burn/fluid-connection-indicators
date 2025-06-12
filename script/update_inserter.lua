@@ -72,7 +72,7 @@ local function valid_position(entity, direction, serving_type)
     local has_item_on_ground = false
     local surface = entity.surface
     for _, neighbor in pairs(surface.find_entities_filtered { area = pos_to_tile_bb(position) }) do
-        if entity_types_with_inventory[neighbor.type] then
+        if entity_types_with_inventory[neighbor.type] or neighbor.burner then
             return true
         end
         if neighbor.name == "item-on-ground" then
