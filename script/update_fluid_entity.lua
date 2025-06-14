@@ -101,9 +101,12 @@ local lite_tints = {
 }
 
 local function update_fluid_entity(indicators, entity, lite)
-    local fb = entity.fluidbox
-    if denied_types[entity.type] or #fb == 0 then
+    if denied_types[entity.type] then
         return false
+    end
+    local fb = entity.fluidbox
+    if #fb == 0 then
+        return true  -- We need to clear indicators when changing fluid boxes
     end
     for i = 1, (entity.type == "fluid-turret" and 1 or #fb) do
         local any_connected = calculate_any_connected(fb.get_pipe_connections(i))
