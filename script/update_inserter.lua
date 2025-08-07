@@ -69,17 +69,17 @@ end
 local function valid_position(entity, direction, serving_type)
     local position = entity[direction .. "_position"]
     local other_position_name = direction == "pickup" and "drop_position" or "pickup_position"
-    local has_item_on_ground = false
+    local has_nonblocking_entity = false
     local surface = entity.surface
     for _, neighbor in pairs(surface.find_entities_filtered { area = pos_to_tile_bb(position) }) do
         if entity_types_with_inventory[neighbor.type] or neighbor.burner then
             return true
         end
-        if neighbor.name == "item-on-ground" then
-            has_item_on_ground = true
+        if neighbor.name == "item-on-ground" or neighbor.name == "character" then
+            has_nonblocking_entity = true
         end
     end
-    if has_item_on_ground or surface.can_place_entity { name = "pipe", position = position } then
+    if has_nonblocking_entity or surface.can_place_entity { name = "pipe", position = position } then
         local area = math2d.bounding_box.create_from_centre(position, 2 * common.inserter_distance)
         for _, inserter in pairs(surface.find_entities_filtered { type = serving_type, area = area }) do
             if same_tile(position, inserter[other_position_name]) then
