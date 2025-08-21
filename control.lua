@@ -48,11 +48,15 @@ local function schedule_update_entity(entity)
     schedule_update_area(entity.surface, entity.bounding_box)
 end
 
-
 local ignored_entity_names
 local function is_entity_name_ignored(name)
     if not ignored_entity_names then
-        ignored_entity_names = util.list_to_map(util.split(settings.global["fci-ignored-entities"].value, ","))
+        ignored_entity_names = util.list_to_map(
+            {
+                "supply-depot", "elevated-pipe-alt-mode", "elevated-pipe",
+                table.unpack(util.split(settings.global["fci-ignored-entities"].value, ","))
+            }
+        )
     end
     return ignored_entity_names[name]
 end
