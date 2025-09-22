@@ -135,12 +135,13 @@ local function handle_opened_entity()
 end
 
 local function handle_selected_entity()
-    if settings.global["fci-on-hover-mode"].value then
+    local hover_mode = settings.global["fci-on-hover-mode"].value
+    if hover_mode then
         clear_indicators()
-        for _, player in pairs(game.players) do
-            if player.selected then
-                update_single_entity(player.selected, true)
-            end
+    end
+    for _, player in pairs(game.players) do
+        if player.selected then
+            update_single_entity(player.selected, hover_mode)
         end
     end
 end
