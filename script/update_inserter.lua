@@ -36,11 +36,14 @@ local function draw_inserter_indicator(entity, direction)
         end
     end
 
-    local direction_vector = math2d.position.subtract(target_position, entity.position)
-    params.target = math2d.position.subtract(
-        target_position,
-        math2d.position.divide_scalar(direction_vector, offset * math2d.position.vector_length(direction_vector))
-    )
+    local target_offset = math2d.position.subtract(target_position, entity.position)
+    params.target = {
+        entity = entity,
+        offset = math2d.position.multiply_scalar(
+            target_offset,
+            1.0 - 1.0/(offset * math2d.position.vector_length(target_offset))
+        )
+    }
 
     return rendering.draw_sprite(params)
 end

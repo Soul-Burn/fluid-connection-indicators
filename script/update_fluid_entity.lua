@@ -6,7 +6,13 @@ local function draw_fluid_indicator(entity, conn, tint)
     return rendering.draw_sprite {
         sprite = conn.flow_direction == "input-output" and "fci-flow-arrow-both-ways" or "fci-flow-arrow",
         tint = tint,
-        target = math2d.position.divide_scalar(math2d.position.add(conn.position, conn.target_position), 2),
+        target = {
+            entity = entity,
+            offset = math2d.position.subtract(
+                math2d.position.divide_scalar(math2d.position.add(conn.position, conn.target_position), 2),
+                entity.position
+            )
+        },
         orientation_target = (conn.flow_direction == "input" and math2d.position.add or math2d.position.subtract)(
             conn.position, math2d.position.subtract(conn.position, conn.target_position)
         ),
