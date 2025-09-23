@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.7
-Date: ????
+Date: 2025-09-23
   Changes:
     - Update on selected entity even when not in hover mode
     - Rendering now targets entities, fixing lingering indicator issues
