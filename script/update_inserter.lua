@@ -13,6 +13,7 @@ local function draw_inserter_indicator(entity, direction)
         orientation_target = entity.position,
         x_scale = 0.8,
         y_scale = 0.8,
+        render_layer = common.render_layer,
     }
 
     local target_position
@@ -30,7 +31,7 @@ local function draw_inserter_indicator(entity, direction)
             params.y_scale = 1
             params.orientation_target = nil
             params.orientation = entity.orientation
-            offset = 3.3
+            offset = 3.35
         else
             offset = 2.25
         end
@@ -42,7 +43,7 @@ local function draw_inserter_indicator(entity, direction)
         offset = math2d.position.multiply_scalar(
             target_offset,
             1.0 - 1.0/(offset * math2d.position.vector_length(target_offset))
-        )
+        ),
     }
 
     return rendering.draw_sprite(params)

@@ -19,6 +19,7 @@ local function draw_fluid_indicator(entity, conn, tint)
         only_in_alt_mode = true,
         surface = entity.surface,
         force = entity.force,
+        render_layer = common.render_layer,
     }
 end
 
@@ -40,15 +41,15 @@ end
 
 local function calculate_tint(entity, conn, any_connected, filter)
     if conn.target then
-        if conn.flow_direction == "input-output" and not denied_types[conn.target.owner.type] then
-            local target_flow_direction = conn.target.get_pipe_connections(conn.target_fluidbox_index)[conn.target_pipe_connection_index].flow_direction
-            if target_flow_direction ~= "input-output" or conn.target.owner.unit_number > entity.unit_number then
+        if conn.flow_direction == "input-output" and not denied_types[conn.target.type] then
+            local target_flow_direction = conn.target.get_fluid_box_pipe_connections(conn.target_fluidbox_index)[conn.target_pipe_connection_index].flow_direction
+            if target_flow_direction ~= "input-output" or conn.target.unit_number > entity.unit_number then
                 return "nothing"
             end
         end
 
         if filter then
-            local target_filter = conn.target.get_filter(conn.target_fluidbox_index)
+            local target_filter = conn.target.get_fluid_filter(conn.target_fluidbox_index)
             if target_filter and target_filter.name ~= filter.name then
                 return "error"
             end
@@ -61,7 +62,7 @@ local function calculate_tint(entity, conn, any_connected, filter)
         for _, neighbor in pairs(entity.surface.find_entities_filtered { position = conn.target_position }) do
             if neighbor and not neighbor_is_ignored(entity, neighbor) then
                 indication_level = 3
-                if #neighbor.fluidbox > 0 then
+                if neighbor.fluids_count > 0 then
                     indication_level = 4
                     break
                 end
@@ -110,14 +111,10 @@ local function update_fluid_entity(indicators, entity, lite)
     if denied_types[entity.type] then
         return false
     end
-    local fb = entity.fluidbox
-    if #fb == 0 then
-        return true  -- We need to clear indicators when changing fluid boxes
-    end
-    for i = 1, (entity.type == "fluid-turret" and 1 or #fb) do
-        local any_connected = calculate_any_connected(fb.get_pipe_connections(i))
-        local filter = fb.get_filter(i)
-        for _, conn in pairs(fb.get_pipe_connections(i)) do
+    for i = 1, (entity.type == "fluid-turret" and 1 or entity.fluids_count) do
+        local any_connected = calculate_any_connected(entity.get_fluid_box_pipe_connections(i))
+        local filter = entity.get_fluid_filter(i)
+        for _, conn in pairs(entity.get_fluid_box_pipe_connections(i)) do
             local tint = calculate_tint(entity, conn, any_connected[conn.flow_direction], filter)
 
             tint = (lite and lite_tints or full_tints)[tint]
