@@ -111,8 +111,12 @@ local function update_fluid_entity(indicators, entity, lite)
     if denied_types[entity.type] then
         return false
     end
-    for i = 1, (entity.type == "fluid-turret" and 1 or entity.fluids_count) do
-        local any_connected = calculate_any_connected(entity.get_fluid_box_pipe_connections(i))
+    for i = 1, entity.fluids_count do
+        local fluid_box_pipe_connections = entity.get_fluid_box_pipe_connections(i)
+        if not fluid_box_pipe_connections then
+            break
+        end
+        local any_connected = calculate_any_connected(fluid_box_pipe_connections)
         local filter = entity.get_fluid_filter(i)
         for _, conn in pairs(entity.get_fluid_box_pipe_connections(i)) do
             local tint = calculate_tint(entity, conn, any_connected[conn.flow_direction], filter)
