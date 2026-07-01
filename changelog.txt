@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.9
-Date: ????
+Date: 2026-07-01
   Bugfixes:
     - Fixed crash on fluid wagons
     - Fixed indicator on pumps to rails
