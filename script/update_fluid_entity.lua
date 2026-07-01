@@ -57,10 +57,14 @@ local function calculate_tint(entity, conn, any_connected, filter)
         return "good"
     end
 
+    local ignored = conn.flow_direction == "input-output" and "nothing" or "ignored"
     local indication_level = 2
     if not entity.surface.can_place_entity { name = "pipe", position = conn.target_position } then
         for _, neighbor in pairs(entity.surface.find_entities_filtered { position = conn.target_position }) do
-            if neighbor and not neighbor_is_ignored(entity, neighbor) then
+            if neighbor then
+                if neighbor_is_ignored(entity, neighbor) then
+                    return ignored
+                end
                 indication_level = 3
                 if neighbor.fluids_count > 0 then
                     indication_level = 4
@@ -72,7 +76,6 @@ local function calculate_tint(entity, conn, any_connected, filter)
     if any_connected then
         indication_level = indication_level - 1
     end
-    local ignored = conn.flow_direction == "input-output" and "nothing" or "ignored"
     local levels = {
         ignored,
         any_connected and ignored or "awaiting",
